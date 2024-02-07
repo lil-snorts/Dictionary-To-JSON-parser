@@ -13,10 +13,10 @@ func main() {
 	// Get Dict Data in buffer
 	file, error := os.Open("resources/dict.txt")
 
-	wordRegex, _ := regexp.Compile("^[A-Z][A-Z0-9\\. '-]*$")
-	dictEndRegex, _ := regexp.Compile("^\\s*[\\*]{3} END.*$")
-	dictStartRegex, _ := regexp.Compile("^\\s*[\\*]{3} START.*$")
-	newLineRegex, _ := regexp.Compile("^\\n$")
+	wordRegex := regexp.MustCompile("^[A-Z][A-Z0-9\\. '-]*$")
+	dictEndRegex := regexp.MustCompile("^\\s*[\\*]{3} END.*$")
+	dictStartRegex := regexp.MustCompile("^\\s*[\\*]{3} START.*$")
+	newLineRegex := regexp.MustCompile("^$")
 
 	const (
 		preStart int = iota
@@ -25,6 +25,7 @@ func main() {
 		parsingPronounciation
 		parsingDefinitionFirstLine
 		parsingDefinition
+		newLineInDefinition
 	)
 
 	var phase = preStart
@@ -41,8 +42,6 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	// Iterate over each line
-	var lastWord = "$"
-
 	i := 0
 
 	for scanner.Scan() {
@@ -69,14 +68,13 @@ func main() {
 			break
 		}
 
-		if wordRegex.MatchString(line) && lastWord != line {
+		if wordRegex.MatchString(line) {
 			if phase != beforeFirstWord {
 				fmt.Printf("\"]\"\n},\n")
 			}
 
 			fmt.Printf("{\n\t\"word\": \"%s\",", line)
 			phase = parsingPronounciation
-			lastWord = line
 
 		} else if phase == parsingPronounciation {
 			fmt.Printf("\n\t\"pronounciation\": \"%s\",", strings.Replace(line, "\"", "\\\"", -1))
@@ -85,16 +83,21 @@ func main() {
 		} else if newLineRegex.MatchString(line) {
 
 			if phase == parsingDefinition {
-				fmt.Printf("\"\n")
+				fmt.Printf("\n")
+				phase = newLineInDefinition
 			}
 
-			fmt.Printf(" ,")
+			fmt.Printf(",")
 
 		} else if phase == parsingDefinitionFirstLine {
 			fmt.Printf("\n\t\"definition\": [\n\t\t\"%s", strings.Replace(line, "\"", "\\\"", -1))
 			phase = parsingDefinition
 
-		} else if phase == parsingDefinition {
+		} else if phase == parsingDefinition || phase == newLineInDefinition {
+			if phase == newLineInDefinition {
+				fmt.Printf("\",\n\t\"")
+				phase = parsingDefinition
+			}
 			fmt.Printf("%s", strings.Replace(line, "\"", "\\\"", -1))
 		}
 
