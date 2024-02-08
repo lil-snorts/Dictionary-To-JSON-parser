@@ -13,9 +13,9 @@ func main() {
 	// Get Dict Data in buffer
 	file, error := os.Open("resources/dict.txt")
 
-	wordRegex := regexp.MustCompile("^[A-Z][A-Z0-9\\. '-]*$")
-	dictEndRegex := regexp.MustCompile("^\\s*[\\*]{3} END.*$")
-	dictStartRegex := regexp.MustCompile("^\\s*[\\*]{3} START.*$")
+	wordRegex := regexp.MustCompile(`^[A-Z](?:[A-Z0-9\. ';-]*)$`)
+	dictEndRegex := regexp.MustCompile(`^\s*[\*]{3} END.*$`)
+	dictStartRegex := regexp.MustCompile(`^\s*[\*]{3} START.*$`)
 	newLineRegex := regexp.MustCompile("^$")
 
 	const (
@@ -69,36 +69,43 @@ func main() {
 		}
 
 		if wordRegex.MatchString(line) {
-			if phase != beforeFirstWord {
-				fmt.Printf("\"]\"\n},\n")
+			if phase == newLineInDefinition {
+				fmt.Printf("\n\t]")
+			} else if phase != beforeFirstWord {
+				fmt.Printf("]\"\n},\n")
 			}
 
-			fmt.Printf("{\n\t\"word\": \"%s\",", line)
+			fmt.Printf("\n},\n{\n\t\"word\": \"%s\",", line)
 			phase = parsingPronounciation
 
 		} else if phase == parsingPronounciation {
-			fmt.Printf("\n\t\"pronounciation\": \"%s\",", strings.Replace(line, "\"", "\\\"", -1))
+			fmt.Printf("\n\t"+`"pronounciation": "%s",`, strings.Replace(line, `"`, `\"`, -1))
 			phase = parsingDefinitionFirstLine
 
 		} else if newLineRegex.MatchString(line) {
 
 			if phase == parsingDefinition {
-				fmt.Printf("\n")
 				phase = newLineInDefinition
+				fmt.Printf(`"`)
 			}
-
-			fmt.Printf(",")
+			// if phase == parsingDefinition {
+			// }
 
 		} else if phase == parsingDefinitionFirstLine {
-			fmt.Printf("\n\t\"definition\": [\n\t\t\"%s", strings.Replace(line, "\"", "\\\"", -1))
+			fmt.Printf(
+				"\n\t\"definition\": [\n\t\"%s",
+				strings.Replace(line, `"`, `\"`, -1))
+
 			phase = parsingDefinition
 
 		} else if phase == parsingDefinition || phase == newLineInDefinition {
+
 			if phase == newLineInDefinition {
-				fmt.Printf("\",\n\t\"")
+				fmt.Printf(",\n\t\"")
 				phase = parsingDefinition
 			}
-			fmt.Printf("%s", strings.Replace(line, "\"", "\\\"", -1))
+
+			fmt.Printf("%s", strings.Replace(line, `"`, `\"`, -1))
 		}
 
 		// fmt.Println("\n\t\t\t", phase)
