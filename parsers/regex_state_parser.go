@@ -1,15 +1,13 @@
-package main
+package parsers
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 )
 
 const (
-	preStart int = iota
+	PreStart int = iota
 	beforeFirstWord
 	parsingWord
 	parsingPronounciationFirstLine
@@ -33,49 +31,11 @@ var (
 	NewLineRegex   = regexp.MustCompile(NewLineRegexStr)
 )
 
-func main() {
-
-	// Get Dict Data in buffer
-	file, error := os.Open("resources/dict.txt")
-
-	var phase = preStart
-
-	if error != nil {
-		fmt.Printf("I/O error: %s", error)
-		return
-	}
-
-	// Close file on function exit
-	defer file.Close()
-
-	// Bring the file into a buffer
-	scanner := bufio.NewScanner(file)
-
-	// Iterate over each line
-	// i := 0
-
-	for scanner.Scan() {
-
-		// if i > 290 {
-		// 	break
-		// } else {
-		// 	i++
-		// }
-
-		// if phase == parsingDefinition {
-		// }
-		if ParseDict(&phase, scanner.Text()) == 0 {
-			break
-		}
-
-	}
-}
-
 func ParseDict(phase *int, line string) int {
-	if *phase == preStart && DictStartRegex.MatchString(line) {
+	if *phase == PreStart && DictStartRegex.MatchString(line) {
 		*phase = beforeFirstWord
 		return 1
-	} else if *phase == preStart {
+	} else if *phase == PreStart {
 		return 1
 	}
 
