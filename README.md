@@ -7,7 +7,7 @@ This is a GoLang script to parse the Gutenberg Websters dictionary https://www.g
 At the moment you need Go installed on your device, then the command
 
 ```bash
-go run applicaiton.go
+go run parser.go
 ```
 
 will excecute the application
