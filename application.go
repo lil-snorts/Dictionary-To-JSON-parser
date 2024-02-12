@@ -10,8 +10,8 @@ func main() {
 
 	// Get Dict Data in buffer
 	var filename string
-	if len(os.Args) > 0 {
-		filename = os.Args[0]
+	if len(os.Args) > 1 {
+		filename = os.Args[1]
 	} else {
 		filename = "./resources/input.txt"
 	}

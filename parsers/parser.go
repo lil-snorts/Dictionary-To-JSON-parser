@@ -9,18 +9,14 @@ import (
 	"strings"
 )
 
-const (
-	wordRegexStr      = `^[A-Z](?:[A-Z0-9\. ';-]*)$`
-	dictEndRegexStr   = `^\s*[*]{3} END.*$`
-	dictStartRegexStr = `^\s*[*]{3} START.*$`
-	newLineRegexStr   = "^$"
-)
-
 var (
-	WordRegex      = regexp.MustCompile(wordRegexStr)
-	DictEndRegex   = regexp.MustCompile(dictEndRegexStr)
-	DictStartRegex = regexp.MustCompile(dictStartRegexStr)
-	EmptyLineRegex = regexp.MustCompile(newLineRegexStr)
+	WordRegex      = regexp.MustCompile(`^[A-Z](?:[A-Z0-9\. ';-]*)$`)
+	DictEndRegex   = regexp.MustCompile(`^\s*[*]{3} END.*$`)
+	DictStartRegex = regexp.MustCompile(`^\s*[*]{3} START.*$`)
+	EmptyLineRegex = regexp.MustCompile("^$")
+	name           string
+	pronounciation string
+	descriptions   []string
 )
 
 type DictWord struct {
@@ -28,12 +24,6 @@ type DictWord struct {
 	Pronounciation string
 	Descriptions   []string
 }
-
-var (
-	name           string
-	pronounciation string
-	descriptions   []string
-)
 
 func ParseFileToJSON(filepath string) {
 	entireDict := []DictWord{}
@@ -44,21 +34,16 @@ func ParseFileToJSON(filepath string) {
 		fmt.Printf("Cant find %s\n", filepath)
 		return
 	}
+	defer file.Close()
 
 	// Bring the file into a buffer
 	scanner := bufio.NewScanner(file)
-	// might need to defer this
-	defer file.Close()
 
 	active := false
 	bigText := ""
 
 	for scanner.Scan() {
-		line := strings.ReplaceAll(scanner.Text(), `"`, "'")
-
-		if len(entireDict) > 0 {
-			continue
-		}
+		line := strings.ReplaceAll(scanner.Text(), `"`, `'`)
 
 		if !active {
 			if DictStartRegex.MatchString(line) {
@@ -78,7 +63,7 @@ func ParseFileToJSON(filepath string) {
 			name = line
 			pronounciation = ""
 			descriptions = []string{}
-			fmt.Println(name)
+			fmt.Printf("%s, ", name)
 		} else if EmptyLineRegex.MatchString(line) {
 			// This only happens when its multi lined defn.
 			// or the transition from pronounce to defn.
@@ -97,13 +82,10 @@ func ParseFileToJSON(filepath string) {
 	}
 	text, _ := json.Marshal(entireDict)
 
-	fmt.Print(string(text))
-
+	// 0666 is Read, Write but not execute
 	err := os.WriteFile("./output/parsed.json", text, 0666)
 
 	if err != nil {
 		fmt.Print(err)
 	}
-
-	return
 }
