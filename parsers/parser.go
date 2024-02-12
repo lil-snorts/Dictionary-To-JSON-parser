@@ -63,7 +63,7 @@ func ParseFileToJSON(filepath string) {
 			name = line
 			pronounciation = ""
 			descriptions = []string{}
-			fmt.Printf("%s, ", name)
+
 		} else if EmptyLineRegex.MatchString(line) {
 			// This only happens when its multi lined defn.
 			// or the transition from pronounce to defn.
