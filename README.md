@@ -4,10 +4,9 @@ This is a GoLang script to parse the Gutenberg Websters dictionary https://www.g
 
 ## How to run
 
-At the moment you need Go installed on your device, then the command
+At the moment you need Go installed on your device
 
 ```bash
-go run parser.go
+# Without the $filename it will default to resources/input.txt
+go run application.go {$filename}
 ```
-
-will excecute the application
