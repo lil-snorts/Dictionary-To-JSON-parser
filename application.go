@@ -1,47 +1,20 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"os"
 
-	wegex "dict-parser/parsers"
+	"dict-parser/parsers"
 )
 
 func main() {
 
 	// Get Dict Data in buffer
-	file, error := os.Open("resources/dict.txt")
-
-	var phase = wegex.PreStart
-
-	if error != nil {
-		fmt.Printf("I/O error: %s", error)
-		return
+	var filename string
+	if len(os.Args) > 0 {
+		filename = os.Args[0]
+	} else {
+		filename = "./resources/input.txt"
 	}
 
-	// Close file on function exit
-	defer file.Close()
-
-	// Bring the file into a buffer
-	scanner := bufio.NewScanner(file)
-
-	// Iterate over each line
-	// i := 0
-
-	for scanner.Scan() {
-
-		// if i > 290 {
-		// 	break
-		// } else {
-		// 	i++
-		// }
-
-		// if phase == parsingDefinition {
-		// }
-		if wegex.ParseDict(&phase, scanner.Text()) == 0 {
-			break
-		}
-
-	}
+	parsers.ParseFileToJSON(filename)
 }
